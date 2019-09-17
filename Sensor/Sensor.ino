@@ -43,7 +43,7 @@ void loop() {
     turnRight();
   } else if (analogRead(SENSORLEFT) > 500 && analogRead(SENSORRIGHT) < 500) {
     turnLeft();
-  } else if (analogRead(SESNSORRIGHT) > 500 && analogRead(SENSORLEFT) > 500 && analogRead(SENSORMID) > 500) {
+  } else if ((analogRead(SESNSORRIGHT) > 500 && analogRead(SENSORLEFT) > 500 && analogRead(SENSORMID) > 500) || ((analogRead(SESNSORRIGHT) < 500 && analogRead(SENSORLEFT) < 500 && analogRead(SENSORMID) > 500)) {
     driveStraight();
   } else if (analogRead(SENSORMID) < 500 && analogRead(SESORLEFT) > 500) {
     ninetyLeft();
