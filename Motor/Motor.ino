@@ -41,16 +41,28 @@ void back() {
   
 }
 
-void drejHoejre() {
-  digitalWrite(motor1A,HIGH);
+void right() {
+  digitalWrite(motor1A,LOW);
+  digitalWrite(motor2A,HIGH);
   digitalWrite(motor1B,HIGH);
-  analogWrite(motor1A,75);
-  analogWrite(motor1B,200);
+  digitalWrite(motor2B,LOW);
+  analogWrite(motor2A,200);
+  analogWrite(motor2B,100);
 }
+
+void left() {
+  digitalWrite(motor1A,HIGH);
+  digitalWrite(motor2A,LOW);
+  digitalWrite(motor1B,HIGH);
+  digitalWrite(motor2B,LOW);
+  analogWrite(motor2A,100);
+  analogWrite(motor2B,200);
+}
+
 
 void stop() {
   digitalWrite(motor1A,LOW);
+  digitalWrite(motor2A,LOW);
   digitalWrite(motor1B,LOW);
-  analogWrite(motor1A,0);
-  analogWrite(motor1B,0);
+  digitalWrite(motor2B,LOW);
 }
