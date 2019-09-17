@@ -6,7 +6,8 @@
 #define motor1B 6
 #define motor2B 5
 int count = 0;
-
+int on = 255;
+int off = 0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -20,65 +21,84 @@ void setup() {
   pinMode(motor2B, OUTPUT);
 }
 
-void turnRight() {
-  digitalWrite(motor1A, LOW);
-  digitalWrite(motor2A, HIGH);
-  digitalWrite(motor1B, HIGH);
-  digitalWrite(motor2B, LOW);
-  analogWrite(motor2A, 100);
-  analogWrite(motor2B, 200); 
+
+void leftForward() {
+  analogWrite(motor1A, off);
+  analogWrite(motor2A, on);
 }
 
-void turnLeft() {
-  digitalWrite(motor1A, LOW);
-  digitalWrite(motor2A, HIGH);
-  digitalWrite(motor1B, LOW);
-  digitalWrite(motor2B, HIGH);
-  analogWrite(motor2A, 100);
-  analogWrite(motor2B, 200);
+void rightForward() {
+  analogWrite(motor1B, on);
+  analogWrite(motor2B, off);
+ 
+}
+
+void rightBack() {
+  analogWrite(motor1B, off);
+  analogWrite(motor2B, on);
+ 
+}
+
+void leftBack() {
+  analogWrite(motor1A, on);
+  analogWrite(motor2A, off);
+ 
+}
+
+void leftOff() {
+  analogWrite(motor1A, off);
+  analogWrite(motor2A, off);
+}
+
+
+void rightOff() {
+  analogWrite(motor1B, off);
+  analogWrite(motor2B, off);
+}
+
+void sharpRight() {
+  rightBack();
+  leftForward();
+}
+
+void sharpLeft() {
+  leftBack();
+  rightForward();
 }
 
 void driveStraight() {
-  digitalWrite(motor1A, LOW);
-  digitalWrite(motor2A, HIGH);
-  digitalWrite(motor1B, HIGH);
-  digitalWrite(motor2B, LOW);
-  analogWrite(motor1A, 158);
-  analogWrite(motor1B, 100);
+  rightForward();
+  leftForward();
+}
+
+void softLeft() {
+  rightForward();
+  leftOff();
+}
+
+void softRight() {
+  leftForward();
+  rightOff();
 }
 
 void back() {
-  digitalWrite(motor1A, LOW);
-  digitalWrite(motor2A, HIGH);
-  digitalWrite(motor1B, LOW);
-  digitalWrite(motor2B, HIGH);
-  analogWrite(motor2A, 158);
-  analogWrite(motor2B, 100);
-  
-}
-
-void ninetyLeft() {
-  
-}
-
-void ninetyRight() {
-  
+  rightBack();
+  leftBack();
 }
 
 void standStill() {
-  digitalWrite(motor1A, LOW);
-  digitalWrite(motor2A, LOW);
-  digitalWrite(motor1B, LOW);
-  digitalWrite(motor2B, LOW);
-  analogWrite(motor2A, 0);
-  analogWrite(motor2B, 0);
+  rightOff();
+  leftOff();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print(((analogRead(SENSORLEFT) > 600) ? "H" : "S"));
-  Serial.print(((analogRead(SENSORMID) > 600) ? "H" : "S"));
-  Serial.print(((analogRead(SENSORRIGHT) > 600) ? "H" : "S"));
+  boolean Mid = analogRead(SENSORMID)> 400;
+  boolean Right = analogRead(SENSORRIGHT) > 400;
+  boolean Left = analogRead(SENSORLEFT) > 400;
+  Serial.print(((analogRead(SENSORLEFT) > 400) ? "H" : "S"));
+  Serial.print(((analogRead(SENSORMID) > 400) ? "H" : "S"));
+  Serial.print(((analogRead(SENSORRIGHT) > 400) ? "H" : "S"));
   Serial.print(", Left: ");
   Serial.print(analogRead(SENSORLEFT));
   Serial.print(", Mid: ");
@@ -86,15 +106,15 @@ void loop() {
   Serial.print(", Right: ");
   Serial.println(analogRead(SENSORRIGHT));
   
-  if (analogRead(SENSORRIGHT) < 600 && analogRead(SENSORLEFT) > 600) {
-    turnRight();
-  } else if (analogRead(SENSORLEFT) < 600 && analogRead(SENSORRIGHT) > 600) {
-    turnLeft();
-  } else if ((analogRead(SENSORRIGHT) < 600 && analogRead(SENSORLEFT) < 600 && analogRead(SENSORMID) < 600) || ((analogRead(SENSORRIGHT) > 600 && analogRead(SENSORLEFT) > 600 && analogRead(SENSORMID) < 600))) {
+  if (!Right && Left) {
+    sharpRight();
+  } else if (!Left && Right) {
+    sharpLeft();
+  } else if ((!Right && !Left && !Mid) || ((Right && Left && !Mid))) {
     driveStraight();
-  } else if (analogRead(SENSORMID) > 600 && analogRead(SENSORLEFT) < 600) {
-    ninetyLeft();
-  }else if (analogRead(SENSORMID) > 600 && analogRead(SENSORRIGHT) < 600) {
-    ninetyRight();
+  } else if (!Left && Right && Mid) {
+    softLeft();
+  } else if (Left && !Right && Mid) {
+    softRight();
   }
 }
