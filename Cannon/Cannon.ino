@@ -1,40 +1,23 @@
 #include <Servo.h>
-Servo cannonservo;
-int angle = 0;
-const int in1Pin = 5;
-const int in2Pin = 4;
+Servo CannonServoXY;
+Servo CannonServoXZ;
+int AngleXY = 0;
+int AngleXZ = 70; //Under 15 vibrerer den
+const int CPin = 2;
 
 void setup() {
-  cannonservo.attach(9);
-  pinMode(in1Pin, OUTPUT);
-  pinMode(in2Pin, OUTPUT);
+  CannonServoXY.attach(9);
+  CannonServoXZ.attach(10);
+  CannonServoXY.write(AngleXY);
+  CannonServoXZ.write(AngleXZ);
+  pinMode(CPin,OUTPUT);
 }
 
-void MedUret() {
-  digitalWrite(in1Pin,HIGH);
-  digitalWrite(in2Pin,LOW);
+void Skyd() {
+  digitalWrite(CPin,HIGH);
+  delay(100);
+  digitalWrite(CPin,LOW);
 }
 
-void ModUret() {
-  digitalWrite(in1Pin,LOW);
-  digitalWrite(in2Pin,HIGH);
-}
-
-void Stop() {
-  digitalWrite(in1Pin,LOW);
-  digitalWrite(in2Pin,LOW);
-}
-
-
-void loop() {
-  cannonservo.write(angle);
-  /*if (x = true && y = false && z = false) {
-    MedUret(); 
-  }
-  else if (x = false && y = true && z = false)  {
-    ModUret();
-  }
-  else if (x = false && y = false && z = true)  {
-    Stop();
-  }*/
+void loop() { 
 }
