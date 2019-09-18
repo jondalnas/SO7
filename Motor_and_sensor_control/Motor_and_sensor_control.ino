@@ -6,8 +6,13 @@
 #define motor1B 6
 #define motor2B 5
 int count = 0;
-int on = 255;
+int rightOn = 245;
+int leftOn = 255;
 int off = 0;
+float mid;
+float right;
+float left;
+float safety;
 
 void setup() {
   // put your setup code here, to run once:
@@ -22,25 +27,25 @@ void setup() {
 }
 
 
-void leftForward() {
+void leftForward(int leftOn) {
   analogWrite(motor1A, off);
-  analogWrite(motor2A, on);
+  analogWrite(motor2A, leftOn);
 }
 
-void rightForward() {
-  analogWrite(motor1B, on);
+void rightForward(int rightOn) {
+  analogWrite(motor1B, rightOn);
   analogWrite(motor2B, off);
  
 }
 
-void rightBack() {
+void rightBack(int rightOn) {
   analogWrite(motor1B, off);
-  analogWrite(motor2B, on);
+  analogWrite(motor2B, rightOn);
  
 }
 
-void leftBack() {
-  analogWrite(motor1A, on);
+void leftBack(int leftOn) {
+  analogWrite(motor1A, leftOn);
   analogWrite(motor2A, off);
  
 }
@@ -56,34 +61,34 @@ void rightOff() {
   analogWrite(motor2B, off);
 }
 
-void sharpRight() {
-  rightBack();
-  leftForward();
+void sharpRight(int leftOn, int rightOn) {
+  rightBack(rightOn);
+  leftForward(leftOn);
 }
 
-void sharpLeft() {
-  leftBack();
-  rightForward();
+void sharpLeft(int rightOn, int leftOn) {
+  leftBack(leftOn);
+  rightForward(rightOn);
 }
 
-void driveStraight() {
-  rightForward();
-  leftForward();
+void driveStraight(int leftOn, int rightOn) {
+  rightForward(rightOn);
+  leftForward(leftOn);
 }
 
-void softLeft() {
-  rightForward();
+void softLeft(int rightOn) {
+  rightForward(rightOn);
   leftOff();
 }
 
-void softRight() {
-  leftForward();
+void softRight(int leftOn) {
+  leftForward(leftOn);
   rightOff();
 }
 
-void back() {
-  rightBack();
-  leftBack();
+void back(int rightOn, int leftOn) {
+  rightBack(rightOn);
+  leftBack(leftOn);
 }
 
 void standStill() {
@@ -93,10 +98,15 @@ void standStill() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  boolean Mid = analogRead(SENSORMID)> 400;
-  boolean Right = analogRead(SENSORRIGHT) > 400;
-  boolean Left = analogRead(SENSORLEFT) > 400;
-  Serial.print(((analogRead(SENSORLEFT) > 400) ? "H" : "S"));
+  mid = (mid + (analogRead(SENSORMID) > 400)) / 2;
+  left = (left + (analogRead(SENSORLEFT) > 400)) / 2;
+  right = (right + (analogRead(SENSORRIGHT) > 400)) / 2;
+  boolean midHigh = mid > 0.9;
+  boolean leftHigh = left > 0.9;
+  boolean rightHigh = right > 0.9;
+  safety = (abs(0.5 - mid) + abs(0.5 - left) + abs(0.5 - right)) * (2.0/3.0);
+  
+  /*Serial.print(((analogRead(SENSORLEFT) > 400) ? "H" : "S"));
   Serial.print(((analogRead(SENSORMID) > 400) ? "H" : "S"));
   Serial.print(((analogRead(SENSORRIGHT) > 400) ? "H" : "S"));
   Serial.print(", Left: ");
@@ -104,17 +114,20 @@ void loop() {
   Serial.print(", Mid: ");
   Serial.print(analogRead(SENSORMID));
   Serial.print(", Right: ");
-  Serial.println(analogRead(SENSORRIGHT));
+  Serial.println(analogRead(SENSORRIGHT));*/
+
+  Serial.println(safety);
   
-  if (!Right && Left) {
-    sharpRight();
-  } else if (!Left && Right) {
-    sharpLeft();
-  } else if ((!Right && !Left && !Mid) || ((Right && Left && !Mid))) {
-    driveStraight();
-  } else if (!Left && Right && Mid) {
-    softLeft();
-  } else if (Left && !Right && Mid) {
-    softRight();
+  if (!rightHigh && leftHigh) {
+    sharpRight(leftOn*safety, rightOn*safety);
+  } else if (!leftHigh && rightHigh) {
+    sharpLeft(rightOn*safety, leftOn*safety);
+  } else if ((!rightHigh && !leftHigh && !midHigh) || ((rightHigh && leftHigh && !midHigh))) {
+    driveStraight(leftOn*safety, rightOn*safety);
+  } else if (!leftHigh && rightHigh && midHigh) {
+    softLeft(leftOn*safety);
+  } else if (leftHigh && !rightHigh && midHigh) {
+    softRight(rightOn*safety);
   }
+  //driveStraight();
 }
