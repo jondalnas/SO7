@@ -2,7 +2,7 @@
 Servo CannonServoXY;
 Servo CannonServoXZ;
 int AngleXY = 0;
-int AngleXZ = 70; //Under 20 vibrerer den
+int AngleXZ = 20; //Under 20 vibrerer den
 const int CPin = 2;
 
 void setup() {
