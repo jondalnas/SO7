@@ -9,9 +9,10 @@
 #define motor2B 5
 #define RX 3
 #define TX 2
+#define LIMIT 0.7
 int count = 0;
-int rightOn = 245;
-int leftOn = 255;
+int rightOn = 145;
+int leftOn =   155;
 int off = 0;
 float mid;
 float right;
@@ -118,7 +119,6 @@ void standStill() {
 // Auto
 
 void loop() {
-  Serial.println(autoMode);
   if (bluetooth.available()) {
     byte data = bluetooth.read();
     
@@ -127,42 +127,50 @@ void loop() {
     spin = ((data >> 5) & 1) == 1;
     forward = ((data >> 4) & 1) - ((data >> 3) & 1);
     side = ((data >> 2) & 1) - ((data >> 1) & 1);
-    Serial.println(side);
-    for (auto i = 0u; i < 8; i++) Serial.print((int) ((data >> (7 - i)) & 1));
-    Serial.println();
+
+    Serial.println(data);
   }
   
   if (autoMode) {
-    mid = (mid + (analogRead(SENSORMID) > 400)) / 2;
-    left = (left + (analogRead(SENSORLEFT) > 400)) / 2;
-    right = (right + (analogRead(SENSORRIGHT) > 400)) / 2;
-    boolean midHigh = mid > 0.9;
-    boolean leftHigh = left > 0.9;
-    boolean rightHigh = right > 0.9;
+    mid = (mid * mid + (analogRead(SENSORMID) > 400)) / 2;
+    left = (left * left + (analogRead(SENSORLEFT) > 600)) / 2;
+    right = (right * right + (analogRead(SENSORRIGHT) > 400)) / 2;
+    boolean midHigh = mid > LIMIT;
+    boolean leftHigh = left > LIMIT;
+    boolean rightHigh = right > LIMIT;
     safety = (abs(0.5 - mid) + abs(0.5 - left) + abs(0.5 - right)) * (2.0/3.0);
+
+    //safety *= safety * safety;
+
+    //Serial.println(safety);
     
-    /*Serial.print(((analogRead(SENSORLEFT) > 400) ? "H" : "S"));
+    Serial.print(((analogRead(SENSORLEFT) > 600) ? "H" : "S"));
     Serial.print(((analogRead(SENSORMID) > 400) ? "H" : "S"));
-    Serial.print(((analogRead(SENSORRIGHT) > 400) ? "H" : "S"));
+    Serial.println(((analogRead(SENSORRIGHT) > 400) ? "H" : "S"));
     Serial.print(", Left: ");
     Serial.print(analogRead(SENSORLEFT));
-    Serial.print(", Mid: ");
+    /*Serial.print(", Mid: ");
     Serial.print(analogRead(SENSORMID));
     Serial.print(", Right: ");
     Serial.println(analogRead(SENSORRIGHT));*/
-  
-    //Serial.println(safety);
-    
-    if (!rightHigh && leftHigh) {
+
+    if ((analogRead(SENSORMID) < 400 && analogRead(SENSORLEFT) < 600 && analogRead(SENSORRIGHT) < 400) || ((rightHigh && leftHigh && !midHigh))) {
+      driveStraight(rightOn*safety, leftOn*safety);
+    } else if (!rightHigh && leftHigh) {
       sharpRight(rightOn*safety, leftOn*safety);
     } else if (!leftHigh && rightHigh) {
       sharpLeft(rightOn*safety, leftOn*safety);
-    } else if ((!rightHigh && !leftHigh && !midHigh) || ((rightHigh && leftHigh && !midHigh))) {
-      driveStraight(rightOn*safety, leftOn*safety);
     } else if (!leftHigh && rightHigh && midHigh) {
       softLeft(leftOn*safety);
     } else if (leftHigh && !rightHigh && midHigh) {
       softRight(rightOn*safety);
+    } else if (analogRead(SENSORMID) > 400 && analogRead(SENSORRIGHT) > 400 && analogRead(SENSORLEFT) > 600) {
+      if (left < 0.5 && right > 0.5) {
+        sharpLeft(rightOn, leftOn);
+      } else if (right < 0.5 && left > 0.5) {
+        sharpRight(rightOn, leftOn);
+      }
+      
     }
     //driveStraight();
   } else {
