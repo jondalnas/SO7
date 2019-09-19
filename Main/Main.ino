@@ -1,5 +1,7 @@
 #include "SoftwareSerial.h"
-
+#include <Servo.h>
+Servo CannonServoXY;
+Servo CannonServoXZ;
 #define SENSORLEFT A0  
 #define SENSORMID A1
 #define SENSORRIGHT A2
@@ -23,12 +25,20 @@ bool spin;
 int forward;
 int side;
 bool shoot;
+int AngleXY = 0;                                                                                                                                                                        
+int AngleXZ = 20; //Under 20 vibrerer den
+const int CPin = 7;
 
 SoftwareSerial bluetooth(TX, RX);
 
 void setup() {
   Serial.begin(9600);
   bluetooth.begin(9600);
+  CannonServoXY.attach(3);
+  CannonServoXZ.attach(9);
+  CannonServoXY.write(AngleXY);
+  CannonServoXZ.write(AngleXZ);
+  pinMode(CPin,OUTPUT);
   pinMode(SENSORLEFT, INPUT);
   pinMode(SENSORMID, INPUT);
   pinMode(SENSORRIGHT, INPUT);
@@ -36,6 +46,12 @@ void setup() {
   pinMode(motor2A, OUTPUT);
   pinMode(motor1B, OUTPUT);
   pinMode(motor2B, OUTPUT);
+}
+
+void shooting() {
+  digitalWrite(CPin,HIGH);
+  delay(100);
+  digitalWrite(CPin,LOW);
 }
 
 
@@ -129,6 +145,11 @@ void loop() {
     side = ((data >> 2) & 1) - ((data >> 1) & 1);
 
     Serial.println(data);
+  }
+
+  if (shoot) {
+    shooting();
+    shoot = false;
   }
   
   if (autoMode) {
