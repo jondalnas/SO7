@@ -124,6 +124,11 @@ void standStill() {
   leftOff();
 }
 
+void spinForVictory(int rightOn, int leftOn) {
+  leftForward(leftOn);
+  rightBack(rightOn);
+}
+
 //xxxxxxxx
 // |||||||
 // ||||||Shoot
@@ -143,6 +148,7 @@ void loop() {
     spin = ((data >> 5) & 1) == 1;
     forward = ((data >> 4) & 1) - ((data >> 3) & 1);
     side = ((data >> 2) & 1) - ((data >> 1) & 1);
+    
 
     Serial.println(data);
   }
@@ -150,6 +156,12 @@ void loop() {
   if (shoot) {
     shooting();
     shoot = false;
+  }
+
+  if (spin) {
+    spinForVictory(rightOn, leftOn);
+    delay (5000);
+    standStill();
   }
   
   if (autoMode) {
