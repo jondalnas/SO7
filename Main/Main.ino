@@ -26,8 +26,9 @@ int forward;
 int side;
 bool shoot;
 int AngleXY = 0;                                                                                                                                                                        
-int AngleXZ = 20; //Under 20 vibrerer den
-const int CPin = 7;
+int AngleXZ = 20; //The servo vibrates at angles under 20
+const int CPin = 7; //Cacnon shooting control
+
 
 SoftwareSerial bluetooth(TX, RX);
 
@@ -38,6 +39,7 @@ void setup() {
   CannonServoXZ.attach(9);
   CannonServoXY.write(AngleXY);
   CannonServoXZ.write(AngleXZ);
+  //Sets all pins to correct mode
   pinMode(CPin,OUTPUT);
   pinMode(SENSORLEFT, INPUT);
   pinMode(SENSORMID, INPUT);
@@ -48,46 +50,52 @@ void setup() {
   pinMode(motor2B, OUTPUT);
 }
 
+//Function for shooting 
 void shooting() {
   digitalWrite(CPin,HIGH);
   delay(100);
   digitalWrite(CPin,LOW);
 }
 
-
+//Function to make left wheel go forwards
 void leftForward(int leftOn) {
   analogWrite(motor1A, off);
   analogWrite(motor2A, leftOn);
 }
 
+//Function to make right wheel go forwards
 void rightForward(int rightOn) {
   analogWrite(motor1B, rightOn);
   analogWrite(motor2B, off);
  
 }
 
+//Function to make right wheel go backwards
 void rightBack(int rightOn) {
   analogWrite(motor1B, off);
   analogWrite(motor2B, rightOn);
  
 }
 
+//Function to make left wheel go backwards
 void leftBack(int leftOn) {
   analogWrite(motor1A, leftOn);
   analogWrite(motor2A, off);
  
 }
 
+//Funtion to turn off left wheel
 void leftOff() {
   analogWrite(motor1A, off);
   analogWrite(motor2A, off);
 }
 
-
+//Function to turn off right wheel
 void rightOff() {
   analogWrite(motor1B, off);
   analogWrite(motor2B, off);
 }
+
 
 void sharpRight(int rightOn, int leftOn) {
   rightBack(rightOn);
@@ -124,6 +132,8 @@ void standStill() {
   leftOff();
 }
 
+
+//Function to make the robot do a victory spin.
 void spinForVictory(int rightOn, int leftOn) {
   leftForward(leftOn);
   rightBack(rightOn);
@@ -140,9 +150,12 @@ void spinForVictory(int rightOn, int leftOn) {
 // Auto
 
 void loop() {
+  //Checks if bluetooth is available
   if (bluetooth.available()) {
+    //Reads what bluetooth has sent to it.
     byte data = bluetooth.read();
-    
+
+    //Bitshifts bytes to find the byte that represents the different things and checks if it is 0 or 1.s
     autoMode = ((data >> 6) & 1) == 1;
     shoot = ((data >> 0) & 1) == 1;
     spin = ((data >> 5) & 1) == 1;
@@ -153,24 +166,29 @@ void loop() {
     Serial.println(data);
   }
 
+  //If the shoot button is pressed, it will activate the shooting function and then set the shoot variable to false.
   if (shoot) {
     shooting();
     shoot = false;
   }
 
+  //If the spin button is pressed, it will execute the spinForVictory function.
   if (spin) {
     spinForVictory(rightOn, leftOn);
     delay (5000);
     standStill();
   }
-  
+
+  //If the automede button is pressed the robot will follow the black line on it's own.
   if (autoMode) {
+    //Calculations for a memory so false inputs cannot disrupt the robot.
     mid = (mid * mid + (analogRead(SENSORMID) > 400)) / 2;
     left = (left * left + (analogRead(SENSORLEFT) > 600)) / 2;
     right = (right * right + (analogRead(SENSORRIGHT) > 400)) / 2;
     boolean midHigh = mid > LIMIT;
     boolean leftHigh = left > LIMIT;
     boolean rightHigh = right > LIMIT;
+    //Calculation for how sure the robot is in what it is doing.
     safety = (abs(0.5 - mid) + abs(0.5 - left) + abs(0.5 - right)) * (2.0/3.0);
 
     //safety *= safety * safety;
@@ -186,17 +204,22 @@ void loop() {
     Serial.print(analogRead(SENSORMID));
     Serial.print(", Right: ");
     Serial.println(analogRead(SENSORRIGHT));*/
-
+    //If the sensor in the middle shows black and the sensors on the left and right both show either white or black the robot will drive forwards, with speed modified by how sure it is.
     if ((analogRead(SENSORMID) < 400 && analogRead(SENSORLEFT) < 600 && analogRead(SENSORRIGHT) < 400) || ((rightHigh && leftHigh && !midHigh))) {
       driveStraight(rightOn*safety, leftOn*safety);
+    //If the right sensor sees black and the left sensor sees white, the robot will turn softly to the right.
     } else if (!rightHigh && leftHigh) {
-      sharpRight(rightOn*safety, leftOn*safety);
-    } else if (!leftHigh && rightHigh) {
-      sharpLeft(rightOn*safety, leftOn*safety);
-    } else if (!leftHigh && rightHigh && midHigh) {
-      softLeft(leftOn*safety);
-    } else if (leftHigh && !rightHigh && midHigh) {
       softRight(rightOn*safety);
+    //If the left sensor sees black and the right sensor sees white, the robot will turn softly to the left.
+    } else if (!leftHigh && rightHigh) {
+      softLeft(leftOn*safety);
+    //If the left sensor sees black, while the right and mid sensor see white, the robot will turn sharply to the right.
+    } else if (!leftHigh && rightHigh && midHigh) {
+      sharpLeft(rightOn*safety, leftOn*safety);
+    //If the right sensor sees black, while the left and mid sensor see white, the robot will turn sharply to the left .
+    } else if (leftHigh && !rightHigh && midHigh) {
+      sharpRight(rightOn*safety, leftOn*safety);
+    //If all the sensors see white, it will use the momry to decide if it should turn sharpley right or left.
     } else if (analogRead(SENSORMID) > 400 && analogRead(SENSORRIGHT) > 400 && analogRead(SENSORLEFT) > 600) {
       if (left < 0.5 && right > 0.5) {
         sharpLeft(rightOn, leftOn);
@@ -206,6 +229,7 @@ void loop() {
       
     }
     //driveStraight();
+  //If manual mode is turned on, a person can via an app control the robot.
   } else {
     if (forward == 1) {
       if (side == 1) {
