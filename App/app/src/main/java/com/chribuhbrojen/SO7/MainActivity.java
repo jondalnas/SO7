@@ -10,9 +10,16 @@ import android.widget.Button;
 import android.widget.ListView;
 
 public class MainActivity extends AppCompatActivity {
-    private BluetoothConnector bc;
-    private byte data;
+    private BluetoothConnector bc; //BluetoothConnector is a class used to connect to the HC-05 bluetooth module
+    private byte data; //Data is a byte that represents the data that the Arduino will read after a bluetooth connection is established
     private byte lastData;
+
+    //data = yasddddx
+    //y = unusable bit
+    //a = auto on/off bit
+    //s = spin for victory on/off bit
+    //d = directional bits
+    //x = shoot bit, will turn off after on shot is fired
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
         ((ListView) findViewById(R.id.devices)).setOnItemClickListener(bc.getOnItemClickListener());
         ((ListView) findViewById(R.id.devices)).setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, bc.getNamesList()));
 
+        //If any button is clicked, then cahnge the bit representing that action in the data byte, by XOR'ing it
         ((Button) findViewById(R.id.Auto)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -73,14 +81,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //Creates a new thread that runs in background, to send data, so all data is send at once
         Thread thread = new Thread(run);
         thread.start();
     }
 
     private void sendData() {
+        //Only send data if the data byte changes, so we don't get redudant data
         if (data == lastData) return;
 
         bc.sendMessage((char) data + "");
+
+        //Set the first byte to zero, so the shooting command only happens once
+        data &= 0b01111110;
 
         lastData = data;
     }

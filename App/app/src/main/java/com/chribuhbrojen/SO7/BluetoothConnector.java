@@ -52,6 +52,7 @@ public class BluetoothConnector {
 
     }
 
+    //Retreaves a list of all names on the paired list
     public List<String> getNamesList() {
         List<String> result = new ArrayList<String>();
 
@@ -62,6 +63,7 @@ public class BluetoothConnector {
         return result;
     }
 
+    //Connect to the bluetooth device that is pressed
     public AdapterView.OnItemClickListener getOnItemClickListener() {
         return new AdapterView.OnItemClickListener() {
             @Override
