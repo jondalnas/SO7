@@ -195,7 +195,7 @@ void loop() {
       String cannonXS = "";
       String cannonYS = "";
 
-      byte data;
+      byte misc;
 
       uint8_t curr = 0;
 
@@ -206,7 +206,7 @@ void loop() {
           else if (curr == 1) carYS += (char) text.c_str()[i];
           else if (curr == 2) cannonXS += (char) text.c_str()[i];
           else if (curr == 3) cannonYS += (char) text.c_str()[i];
-          else if (curr == 4) data = (byte) text.c_str()[i];
+          else if (curr == 4) misc = (byte) text.c_str()[i];
         }
       }
 
@@ -217,9 +217,9 @@ void loop() {
       cannonX = atof(cannonXS.c_str());
       cannonY = atof(cannonYS.c_str());
 
-      autoMode = ((data >> 6) & 1) == 1;
-      spin = ((data >> 5) & 1) == 1;
-      shoot = ((data >> 4) & 1) == 1;
+      autoMode = ((misc >> 6) & 1) == 1;
+      spin = ((misc >> 5) & 1) == 1;
+      shoot = ((misc >> 4) & 1) == 1;
 
       text = "";
     }
