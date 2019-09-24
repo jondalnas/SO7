@@ -33,8 +33,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Shoot"
-                app:layout_constraintBottom_toTopOf="@+id/Spin"
-                app:layout_constraintRight_toLeftOf="@+id/Spin" />
+                app:layout_constraintTop_toBottomOf="@+id/Spin"
+                app:layout_constraintLeft_toLeftOf="@+id/Spin"
+                app:layout_constraintRight_toRightOf="@+id/Spin" />
 
             <Button
                 android:id="@+id/Auto"
@@ -42,32 +43,8 @@
                 android:layout_height="wrap_content"
                 android:text="Auto"
                 app:layout_constraintBottom_toTopOf="@+id/Spin"
-                app:layout_constraintLeft_toRightOf="@+id/Spin" />
-
-            <Button
-                android:id="@+id/Right"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="→"
-                app:layout_constraintLeft_toRightOf="@+id/Spin"
-                app:layout_constraintTop_toTopOf="@+id/Spin" />
-
-            <Button
-                android:id="@+id/Left"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="←"
-                app:layout_constraintRight_toLeftOf="@+id/Spin"
-                app:layout_constraintTop_toTopOf="@+id/Spin" />
-
-            <Button
-                android:id="@+id/Down"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="↓"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/Spin" />
+                app:layout_constraintLeft_toLeftOf="@+id/Spin"
+                app:layout_constraintRight_toRightOf="@+id/Spin" />
 
             <Button
                 android:id="@+id/Spin"
@@ -75,17 +52,25 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="Spin to Win!"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/Up" />
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <Button
-                android:id="@+id/Up"
+            <com.zerokol.views.joystickView.JoystickView
+                android:id="@+id/joystickView_servo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="↑"
-                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.zerokol.views.joystickView.JoystickView
+                android:id="@+id/joystickView_car"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

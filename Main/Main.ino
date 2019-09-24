@@ -1,4 +1,5 @@
 #include "SoftwareSerial.h"
+#include <stdlib.h>
 
 #define SENSORLEFT A0  
 #define SENSORMID A1
@@ -7,7 +8,7 @@
 #define motor2A 11
 #define motor1B 6
 #define motor2B 5
-#define RX 3
+#define RX 4
 #define TX 2
 int count = 0;
 int rightOn = 245;
@@ -22,6 +23,10 @@ bool spin;
 int forward;
 int side;
 bool shoot;
+float carX;
+float carY;
+float cannonX;
+float cannonY;
 
 SoftwareSerial bluetooth(TX, RX);
 
@@ -107,29 +112,117 @@ void standStill() {
   leftOff();
 }
 
-//xxxxxxxx
-// |||||||
-// ||||||Shoot
-// |||||Right
-// ||||Left
-// |||Backward
-// ||Forward
+//xxxxxxxx xxxxxxxx xxxxxxxx
+// |||||||  |||||||  |||||
+// ||||--|  |--||----||--|
+// |||  |     |    |    |
+// |||  |     |    |    Cannon Y
+// |||  |     |    Cannon X
+// |||  |     Car Y
+// |||  Car X
+// ||Shoot
 // |Spinn to win
 // Auto
+//
+// Car X
+// xxxx
+// ||-|
+// | |
+// | Mandesa
+// Sign
 
+byte curr;
+uint32_t fullPackage;
+String text = "";
 void loop() {
-  Serial.println(autoMode);
+  typedef union {
+    uint32_t i;
+    float   f;
+  }
+  packed_t;
+  
   if (bluetooth.available()) {
     byte data = bluetooth.read();
+    //for (int i = 0; i < 32; i++) Serial.print((((uint32_t) data << ((3 - (curr % 4)) * 8)) >> (31 - i)) & 0b1);
+    //Serial.println();
     
-    autoMode = ((data >> 6) & 1) == 1;
-    shoot = ((data >> 0) & 1) == 1;
-    spin = ((data >> 5) & 1) == 1;
-    forward = ((data >> 4) & 1) - ((data >> 3) & 1);
-    side = ((data >> 2) & 1) - ((data >> 1) & 1);
-    Serial.println(side);
-    for (auto i = 0u; i < 8; i++) Serial.print((int) ((data >> (7 - i)) & 1));
-    Serial.println();
+    fullPackage |= (uint32_t) data << ((3 - (curr % 4)) * 8);
+    
+    curr++;
+    
+    //for (int i = 0; i < 8; i++) Serial.print((data >> (7 - i)) & 0b1);
+    //Serial.println((char) data);
+    text += (char) data;
+    
+    if (data == 0) {
+      /*for (int i = 0; i < 32; i++) Serial.print((fullPackage >> (31 - i)) & 0b1);
+      Serial.println();
+      
+      autoMode = ((fullPackage >> (6 + 3*8)) & 1) == 1;
+      spin = ((fullPackage >> (5 + 3*8)) & 1) == 1;
+      shoot = ((fullPackage >> (4 + 3*8)) & 1) == 1;
+      
+      packed_t carX;
+      
+      byte carXSign = (fullPackage >> (3 + 3*8)) & 0b1;
+      byte carXExponent = (fullPackage >> (1 + 3*8) & 0b11);
+      byte carXMandesa = (((fullPackage >> (3*8)) & 0b1) << 2) | ((fullPackage >> (5 + 2*8)) & 0b11);
+
+      carX.i = ((uint32_t) carXSign << 31) | ((uint32_t) carXMandesa << 20) | ((uint32_t) carXExponent << 23) | 0b00111110000000000000000000000000;
+
+      packed_t carY;
+      
+      byte carYSign = (fullPackage >> (4 + 2*8)) & 0b1;
+      byte carYExponent = ((fullPackage >> (2 + 2*8)) & 0b11);
+      byte carYMandesa = (((fullPackage >> (2*8)) & 0b11) << 2) | ((fullPackage >> (6 + 1*8)) & 0b1);
+
+      carY.i = ((uint32_t) carYSign << 31) | ((uint32_t) carYMandesa << 20) | ((uint32_t) carYExponent << 23) | 0b00111110000000000000000000000000;
+
+      //Serial.println(carYMandesa);
+      for (int i = 0; i < 32; i++) Serial.print((fullPackage >> (31 - i)) & 0b1);
+      //Serial.println(carX.f);
+      //Serial.println(carY.f);
+      
+      fullPackage = 0;
+      Serial.println();
+
+      curr = 0;
+      */
+
+      String carXS = "";
+      String carYS = "";
+
+      String cannonXS = "";
+      String cannonYS = "";
+
+      byte data;
+
+      uint8_t curr = 0;
+
+      for (int i = 0; i < strlen(text.c_str()); i++) {
+        if (text.c_str()[i] == ' ') curr++;
+        else {
+          if (curr == 0) carXS += (char) text.c_str()[i];
+          else if (curr == 1) carYS += (char) text.c_str()[i];
+          else if (curr == 2) cannonXS += (char) text.c_str()[i];
+          else if (curr == 3) cannonYS += (char) text.c_str()[i];
+          else if (curr == 4) data = (byte) text.c_str()[i];
+        }
+      }
+
+      //Serial.println(carXS + ", " + carYS);
+      carX = atof(carXS.c_str());
+      carY = atof(carYS.c_str());
+      
+      cannonX = atof(cannonXS.c_str());
+      cannonY = atof(cannonYS.c_str());
+
+      autoMode = ((data >> 6) & 1) == 1;
+      spin = ((data >> 5) & 1) == 1;
+      shoot = ((data >> 4) & 1) == 1;
+
+      text = "";
+    }
   }
   
   if (autoMode) {
@@ -166,24 +259,19 @@ void loop() {
     }
     //driveStraight();
   } else {
-    if (forward == 1) {
-      if (side == 1) {
-        softLeft(rightOn);
-      } else if (side == -1) {
-        softRight(leftOn);
-      } else {
-        driveStraight(leftOn, rightOn);
-      }
-    } else if (forward == -1) {
-        back(rightOn, leftOn);
+    float leftWheel = leftOn * (carY + carX) / 2;
+    float rightWheel = rightOn * (carY - carX) / 2;
+
+    if (leftWheel >= 0) {
+      leftForward(leftWheel);
     } else {
-      if (side == 1) {
-        sharpLeft(rightOn, leftOn);
-      } else if (side == -1) {
-        sharpRight(rightOn, leftOn);
-      } else {
-        standStill();
-      }
+      leftBack(-leftWheel);
+    }
+
+    if (rightWheel >= 0) {
+      rightForward(rightWheel);
+    } else {
+      rightBack(-rightWheel);
     }
   }
 }
